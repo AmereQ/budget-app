@@ -1,2 +1,3 @@
-
-# Placeholder - dopisz pakiety, gdy będą potrzebne
+flask
+gunicorn
+psycopg2-binary
