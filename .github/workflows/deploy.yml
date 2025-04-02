@@ -25,11 +25,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt || echo "Brak dependencies"
+          pip install -r requirements.txt || echo "no dependencies"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "twoja-nazwa-appki"
+          app-name: "budget-app"
           slot-name: "Production"
           package: "."
