@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      COSMOSDB_KEY: ${{ secrets.COSMOSDB_KEY }}  
 
     steps:
       - name: Checkout repository
