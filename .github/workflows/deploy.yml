@@ -35,3 +35,4 @@ jobs:
           app-name: "budget-app"
           slot-name: "Production"
           package: "."
+          startup-command: gunicorn -w 4 -k uvicorn.worksers.UvicornWorker connection_db:app
