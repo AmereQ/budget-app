@@ -1,18 +1,49 @@
-name: Deploy to Azure
+name: Build and Deploy Python App to Azure
 
 on:
   push:
     branches:
       - main
 
+env:
+  COSMOSDB_KEY: ${{ secrets.COSMOSDB_KEY }}
+
 jobs:
-  build-and-deploy:
+  build:
+    name: Build and Test
     runs-on: ubuntu-latest
-    env:
-      COSMOSDB_KEY: ${{ secrets.COSMOSDB_KEY }}  
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pip install pytest
+          pytest || exit 1
+
+      - name: Archive project files
+        run: |
+          zip -r app.zip .
+        # Artifacts can be uploaded if needed in a multi-job setup
+
+  deploy:
+    name: Deploy to Azure Web App
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Log in to Azure
@@ -20,19 +51,20 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt || echo "no dependencies"
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "budget-app"
-          slot-name: "Production"
-          package: "."
-          startup-command: gunicorn -w 4 -k uvicorn.worksers.UvicornWorker connection_db:app
+          app-name: 'budget-app'
+          slot-name: 'Production'
+          package: '.'
+          startup-command: gunicorn -w 4 -k uvicorn.workers.UvicornWorker connection_db:app
